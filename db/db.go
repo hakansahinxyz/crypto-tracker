@@ -26,7 +26,7 @@ func ConnectDatabase() {
 }
 
 func MigrateDatabase(db *gorm.DB) {
-	err := db.AutoMigrate(&models.Coin{}, &models.Exchange{})
+	err := db.AutoMigrate(&models.Coin{}, &models.Exchange{}, &models.WalletBalance{})
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
