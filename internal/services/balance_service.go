@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hakansahinxyz/crypto-tracker-backend/db"
-	"github.com/hakansahinxyz/crypto-tracker-backend/models"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/db"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models"
 	cron "github.com/robfig/cron/v3"
 )
 

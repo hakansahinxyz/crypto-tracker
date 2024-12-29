@@ -3,7 +3,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	controllers "github.com/hakansahinxyz/crypto-tracker-backend/handlers"
+	controllers "github.com/hakansahinxyz/crypto-tracker-backend/internal/handlers"
 )
 
 func SetupRouter() *gin.Engine {

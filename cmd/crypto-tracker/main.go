@@ -4,9 +4,9 @@ package main
 import (
 	"log"
 
-	"github.com/hakansahinxyz/crypto-tracker-backend/db"
-	"github.com/hakansahinxyz/crypto-tracker-backend/routes"
-	"github.com/hakansahinxyz/crypto-tracker-backend/services"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/db"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/routes"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/services"
 )
 
 func main() {

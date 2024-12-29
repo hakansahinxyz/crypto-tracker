@@ -3,8 +3,8 @@ package db
 import (
 	"log"
 
-	"github.com/hakansahinxyz/crypto-tracker-backend/config"
-	"github.com/hakansahinxyz/crypto-tracker-backend/models" // Burada models paketini ekliyoruz
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/config"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models" // Burada models paketini ekliyoruz
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
