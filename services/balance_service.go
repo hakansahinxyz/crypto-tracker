@@ -65,6 +65,11 @@ type MarginAccountResponse struct {
 	Assets                     []MarginBalance `json:"userAssets"`
 }
 
+type Price struct {
+	Symbol string  `json:"symbol"`
+	Price  float64 `json:"price,string"`
+}
+
 func sign(queryString string) string {
 	mac := hmac.New(sha256.New, []byte(secretKey))
 	mac.Write([]byte(queryString))
@@ -72,7 +77,6 @@ func sign(queryString string) string {
 }
 
 func fetchSpotWalletBalancesFromBinance() {
-	log.Println("start fetchSpotWalletBalancesFromBinance")
 	timestamp := time.Now().UnixMilli()
 	queryString := fmt.Sprintf("timestamp=%d&omitZeroBalances=true", timestamp)
 	signature := sign(queryString)
@@ -135,7 +139,6 @@ func fetchSpotWalletBalancesFromBinance() {
 	}
 
 	updateWalletBalances(models.AccountTypeSpot, walletBalances)
-	log.Println("end   fetchSpotWalletBalancesFromBinance")
 
 	/* if err := db.DB.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "exchange_id"}, {Name: "asset"}},
@@ -176,7 +179,7 @@ func updateWalletBalances(accountType models.AccountType, walletBalances []model
 		log.Printf("Failed to reset balances for missing assets: %v", err)
 	}
 
-	log.Println("Successfully update balances")
+	//log.Printf("Successfully update %s balances ", accountType)
 }
 
 func getAssetKeys(assetSet map[string]struct{}) []string {
@@ -188,7 +191,6 @@ func getAssetKeys(assetSet map[string]struct{}) []string {
 }
 
 func fetchMarginWalletBalancesFromBinance() {
-	log.Println("start fetchMarginWalletBalancesFromBinance")
 	timestamp := time.Now().UnixMilli()
 	//queryString := fmt.Sprintf("timestamp=%d", timestamp)
 	queryString := fmt.Sprintf("timestamp=%d&omitZeroBalances=true", timestamp)
@@ -247,7 +249,6 @@ func fetchMarginWalletBalancesFromBinance() {
 	}
 
 	updateWalletBalances(models.AccountTypeMargin, walletBalances)
-	log.Println("end   fetchMarginWalletBalancesFromBinance")
 }
 
 func fetchAccountBalance() {
@@ -391,6 +392,7 @@ func fetchFutureAccountBalance() {
 		return
 	}
 
+	var walletBalances []models.WalletBalance
 	for _, balance := range balances {
 		if balance.Asset == "USDT" {
 			value, err := strconv.ParseFloat(balance.Balance, 64)
@@ -403,9 +405,88 @@ func fetchFutureAccountBalance() {
 			}
 			//log.Printf("Future Balance: %.2f USD", value)
 			//log.Printf("Future UnPNL  : %.2f USD", pnl)
-			log.Printf("Future Total  : %.2f USD, UnPNL  : %.2f USD", value+pnl, pnl)
+			//log.Printf("Future Total  : %.2f USD, UnPNL  : %.2f USD", value+pnl, pnl)
+
+			walletBalances = append(walletBalances, models.WalletBalance{
+				ExchangeID:  1,
+				Asset:       balance.Asset,
+				Amount:      value + pnl,
+				AccountType: models.AccountTypeFutures,
+			})
 		}
 	}
+
+	updateWalletBalances(models.AccountTypeFutures, walletBalances)
+}
+
+func FetchPrices() (map[string]float64, error) {
+	url := "https://api.binance.com/api/v3/ticker/price"
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching prices: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var prices []Price
+	if err := json.Unmarshal(body, &prices); err != nil {
+		return nil, fmt.Errorf("error unmarshaling prices: %v", err)
+	}
+
+	priceMap := make(map[string]float64)
+	for _, price := range prices {
+		priceMap[price.Symbol] = price.Price
+	}
+	return priceMap, nil
+}
+
+func CalculateTotalUSDBalance() {
+	var balances []models.WalletBalance
+	if err := db.DB.Where("amount != 0 AND is_active = true").Find(&balances).Error; err != nil {
+		log.Printf("error fetching balances: %v\n", err)
+	}
+
+	priceMap, err := FetchPrices()
+	if err != nil {
+		log.Printf("error fetching prices: %v\n", err)
+	}
+
+	totalBalance := 0.0
+	for _, balance := range balances {
+		if balance.Asset == "USDT" {
+			totalBalance += balance.Amount
+			continue
+		}
+		symbol := balance.Asset + "USDT"
+		price, ok := priceMap[symbol]
+		if !ok {
+			log.Printf("Price not found for asset: %s", balance.Asset)
+			continue
+		}
+		totalBalance += balance.Amount * price
+	}
+
+	if err := SaveTotalBalance(totalBalance); err != nil {
+		log.Printf("Error saving total balance: %v", err)
+	}
+	log.Printf("Total Balance: %.2f", totalBalance)
+
+}
+
+func SaveTotalBalance(totalBalance float64) error {
+	history := models.BalanceHistory{
+		ExchangeID:    1,
+		TotalUSDValue: totalBalance,
+	}
+
+	if err := db.DB.Create(&history).Error; err != nil {
+		return fmt.Errorf("error saving balance history: %v", err)
+	}
+	return nil
 }
 
 func StartBalanceService() {
@@ -415,8 +496,10 @@ func StartBalanceService() {
 	//c.AddFunc("@every 1m", fetchAccountBalance)
 	//c.AddFunc("@every 3s", fetchFutureAccountBalance)
 	//c.AddFunc("0 * * * * *", fetchAccountBalance)          // every minute; 12:00:00, 12:01:00, 12:02:00
-	//c.AddFunc("0 * * * * *", fetchFutureAccountBalance)          // every minute; 12:00:00, 12:01:00, 12:02:00
 	c.AddFunc("10 */5 * * * *", fetchSpotWalletBalancesFromBinance)   // every minute; 12:00:10, 12:01:10, 12:02:10
 	c.AddFunc("20 */5 * * * *", fetchMarginWalletBalancesFromBinance) // every minute; 12:00:20, 12:01:20 12:02:20
+	c.AddFunc("50 * * * * *", fetchFutureAccountBalance)              // every minute; 12:00:20, 12:01:20 12:02:20
+	c.AddFunc("0 * * * * *", CalculateTotalUSDBalance)                // every minute; 12:00:20, 12:01:20 12:02:20
+
 	c.Start()
 }
