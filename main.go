@@ -6,11 +6,14 @@ import (
 
 	"github.com/hakansahinxyz/crypto-tracker-backend/db"
 	"github.com/hakansahinxyz/crypto-tracker-backend/routes"
+	"github.com/hakansahinxyz/crypto-tracker-backend/services"
 )
 
 func main() {
-	// MySQL'e bağlantı kuruyoruz
 	db.ConnectDatabase()
+
+	//go services.StartPriceService()
+	go services.StartBalanceService()
 
 	router := routes.SetupRouter()
 
