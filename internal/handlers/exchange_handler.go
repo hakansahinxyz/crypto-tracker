@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hakansahinxyz/crypto-tracker-backend/models"
-	"github.com/hakansahinxyz/crypto-tracker-backend/services"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/services"
 )
 
 func CreateExchange(c *gin.Context) {
