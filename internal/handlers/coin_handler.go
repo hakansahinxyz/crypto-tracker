@@ -1,6 +1,6 @@
-// controllers/coinController.go
-package controllers
+package handlers
 
+/*
 import (
 	"net/http"
 	"strconv"
@@ -80,3 +80,4 @@ func DeleteCoin(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Coin deleted successfully"})
 }
+*/

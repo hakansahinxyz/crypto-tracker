@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/db"
+	repository "github.com/hakansahinxyz/crypto-tracker-backend/internal/repositories"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/routes"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/services"
 )
@@ -12,10 +13,14 @@ import (
 func main() {
 	db.ConnectDatabase()
 
-	//go services.StartPriceService()
-	go services.StartBalanceService()
+	walletBalanceRepo := repository.NewWalletBalanceRepository(db.DB)
 
-	router := routes.SetupRouter()
+	walletBalanceService := services.NewWalletBalanceService(walletBalanceRepo)
+
+	router := routes.SetupRouter(walletBalanceService)
+
+	//go services.StartPriceService()
+	//go services.StartBalanceService()
 
 	port := "8080"
 	log.Printf("Starting server on port %s...", port)

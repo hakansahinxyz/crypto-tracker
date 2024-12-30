@@ -1,6 +1,6 @@
-// controllers/coinController.go
-package controllers
+package handlers
 
+/*
 import (
 	"net/http"
 
@@ -23,3 +23,4 @@ func CreateExchange(c *gin.Context) {
 
 	c.JSON(http.StatusOK, exchange)
 }
+*/
