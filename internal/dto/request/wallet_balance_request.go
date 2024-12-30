@@ -5,7 +5,6 @@ import (
 )
 
 type WalletBalanceRequest struct {
-	AccountType  models.AccountType `json:"account_type"`
-	ExchangeName string             `json:"exchange_name"`
-	Asset        string             `json:"asset"`
+	AccountType models.AccountType `form:"account_type"`
+	Asset       string             `form:"asset"`
 }

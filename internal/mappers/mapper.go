@@ -17,7 +17,6 @@ func ToWalletBalanceResponse(balance models.WalletBalance) dto.WalletBalanceReso
 	return dto.WalletBalanceResource{
 		ID:          balance.ID,
 		AccountType: balance.AccountType,
-		Exchange:    balance.Exchange,
 		Asset:       balance.Asset,
 		Amount:      balance.Amount,
 		USDValue:    balance.USDValue,
