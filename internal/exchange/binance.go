@@ -12,13 +12,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/config"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models"
 )
 
 type Binance struct {
 	BaseExchange
-	ApiKey    string
-	SecretKey string
+	Config *config.ExchangeConfig
 }
 
 type AccountInfo struct {
@@ -38,7 +38,7 @@ const (
 )
 
 func (b *Binance) signQuery(query string) string {
-	mac := hmac.New(sha256.New, []byte(b.SecretKey))
+	mac := hmac.New(sha256.New, []byte(b.Config.SecretKey))
 	mac.Write([]byte(query))
 	return hex.EncodeToString(mac.Sum(nil))
 }
@@ -57,7 +57,7 @@ func (b *Binance) FetchSpotWalletBalances() ([]models.WalletBalance, error) {
 		log.Fatalf("Failed to create Request: %v", err)
 	}
 
-	req.Header.Set("X-MBX-APIKEY", b.ApiKey)
+	req.Header.Set("X-MBX-APIKEY", b.Config.ApiKey)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

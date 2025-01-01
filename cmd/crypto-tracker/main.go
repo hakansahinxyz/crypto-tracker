@@ -4,6 +4,7 @@ package main
 import (
 	"log"
 
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/config"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/db"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/exchange"
 	repository "github.com/hakansahinxyz/crypto-tracker-backend/internal/repositories"
@@ -14,10 +15,16 @@ import (
 func main() {
 	db.ConnectDatabase()
 
+	cfg := config.LoadConfig()
+
+	binanceConfig, err := cfg.GetExchangeConfig("binance")
+	if err != nil {
+		log.Fatalf("Failed to get Binance config: %v", err)
+	}
+
 	exchanges := map[string]exchange.Exchange{
 		"binance": &exchange.Binance{
-			ApiKey:    "WcgWNaKfrbthff5fJmpPG7SREvR0CPhq8Ucijthy7cfKwpgheab9RLzH1VfUpw5I",
-			SecretKey: "bkmcU2z2CDPdGueOd8TG6N6lCjNsdlahQGlMpig9Z3SVqCXtQ1kabtKpWEy91J1h",
+			Config: binanceConfig,
 		},
 	}
 	walletBalanceRepo := repository.NewWalletBalanceRepository(db.DB)
