@@ -19,8 +19,8 @@ func main() {
 
 	router := routes.SetupRouter(walletBalanceService)
 
-	//go services.StartPriceService()
-	//go services.StartBalanceService()
+	cronService := services.NewCronService(walletBalanceService)
+	cronService.StartCronJobs()
 
 	port := "8080"
 	log.Printf("Starting server on port %s...", port)

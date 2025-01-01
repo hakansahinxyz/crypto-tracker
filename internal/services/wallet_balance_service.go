@@ -27,3 +27,19 @@ func (s *WalletBalanceService) GetAllBalances(ctx context.Context, req dto.Walle
 func (s *walletBalanceService) CreateBalance(ctx context.Context, balance *models.WalletBalance) error {
     return s.repo.CreateBalance(ctx, balance)
 } */
+
+func (s *WalletBalanceService) FetchSpotWalletBalances() {
+	fetchSpotWalletBalancesFromBinance()
+}
+
+func (s *WalletBalanceService) FetchMarginWalletBalances() {
+	fetchMarginWalletBalancesFromBinance()
+}
+
+func (s *WalletBalanceService) FetchFutureAccountBalance() {
+	fetchFutureAccountBalance()
+}
+
+func (s *WalletBalanceService) CalculateTotalUSDBalance() {
+	CalculateTotalUSDBalance()
+}
