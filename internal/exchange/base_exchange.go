@@ -20,6 +20,6 @@ func (b *BaseExchange) FetchFutureAccountBalance() ([]models.WalletBalance, erro
 	return nil, fmt.Errorf("FetchFutureAccountBalance is not implemented")
 }
 
-func (b *BaseExchange) CalculateTotalUSDBalance() (float64, error) {
+func (b *BaseExchange) CalculateTotalUSDBalance(balances []models.WalletBalance) (float64, error) {
 	return 0, fmt.Errorf("CalculateTotalUSDBalance is not implemented")
 }

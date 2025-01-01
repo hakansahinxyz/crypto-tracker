@@ -49,7 +49,8 @@ func (s *WalletBalanceService) FetchMarginWalletBalances(exchangeName string) er
 	if !exists {
 		return fmt.Errorf("exchange %s not found", exchangeName)
 	}
-	_, err := ex.FetchMarginWalletBalances()
+	balances, err := ex.FetchMarginWalletBalances()
+	updateWalletBalances(models.AccountTypeMargin, balances)
 	return err
 }
 
@@ -58,7 +59,8 @@ func (s *WalletBalanceService) FetchFutureAccountBalance(exchangeName string) er
 	if !exists {
 		return fmt.Errorf("exchange %s not found", exchangeName)
 	}
-	_, err := ex.FetchFutureAccountBalance()
+	balances, err := ex.FetchFutureAccountBalance()
+	updateWalletBalances(models.AccountTypeFutures, balances)
 	return err
 }
 
@@ -67,6 +69,13 @@ func (s *WalletBalanceService) CalculateTotalUSDBalance(exchangeName string) err
 	if !exists {
 		return fmt.Errorf("exchange %s not found", exchangeName)
 	}
-	_, err := ex.CalculateTotalUSDBalance()
+
+	balances, err := s.repo.GetActiveAndNonZeroBalances()
+	if err != nil {
+		return err
+	}
+
+	totalBalance, err := ex.CalculateTotalUSDBalance(balances)
+	SaveTotalBalance(totalBalance)
 	return err
 }

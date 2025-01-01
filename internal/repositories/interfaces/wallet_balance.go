@@ -9,4 +9,5 @@ import (
 
 type WalletBalanceRepository interface {
 	GetAllBalances(ctx context.Context, req dto.WalletBalanceRequest) ([]models.WalletBalance, error)
+	GetActiveAndNonZeroBalances() ([]models.WalletBalance, error)
 }

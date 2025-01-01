@@ -31,7 +31,7 @@ func (cs *CronService) StartCronJobs() {
 			}
 		})
 
-		c.AddFunc("20 */1 6 * * *", func() {
+		c.AddFunc("20 */1 * * * *", func() {
 			log.Printf("%s: Fetching Margin Wallet Balances...", exName)
 			err := cs.walletBalanceService.FetchMarginWalletBalances(exName)
 			if err != nil {
@@ -39,7 +39,7 @@ func (cs *CronService) StartCronJobs() {
 			}
 		})
 
-		c.AddFunc("50 * 6 * * *", func() {
+		c.AddFunc("50 * * * * *", func() {
 			log.Printf("%s: Fetching Future Wallet Balances...", exName)
 			err := cs.walletBalanceService.FetchFutureAccountBalance(exName)
 			if err != nil {
@@ -47,7 +47,7 @@ func (cs *CronService) StartCronJobs() {
 			}
 		})
 
-		c.AddFunc("0 * 6 * * *", func() {
+		c.AddFunc("0 * * * * *", func() {
 			log.Printf("%s: Calculating Total Wallet Balances...", exName)
 			err := cs.walletBalanceService.CalculateTotalUSDBalance(exName)
 			if err != nil {

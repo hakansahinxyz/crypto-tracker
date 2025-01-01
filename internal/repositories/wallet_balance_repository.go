@@ -34,3 +34,11 @@ func (r *walletBalanceRepository) GetAllBalances(ctx context.Context, req dto.Wa
 	}
 	return balances, nil
 }
+
+func (r *walletBalanceRepository) GetActiveAndNonZeroBalances() ([]models.WalletBalance, error) {
+	var balances []models.WalletBalance
+	if err := r.db.Where("amount != 0 AND is_active = true").Find(&balances).Error; err != nil {
+		return nil, err
+	}
+	return balances, nil
+}
