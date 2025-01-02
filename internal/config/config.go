@@ -16,6 +16,11 @@ type Config struct {
 	DBPort     string
 }
 
+type ExchangeConfig struct {
+	ApiKey    string
+	SecretKey string
+}
+
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
@@ -34,4 +39,16 @@ func LoadConfig() *Config {
 func (c *Config) GetDBConnectionString() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName)
+}
+
+func (c *Config) GetExchangeConfig(exchangeName string) (*ExchangeConfig, error) {
+	switch exchangeName {
+	case "binance":
+		return &ExchangeConfig{
+			ApiKey:    os.Getenv("BINANCE_API_KEY"),
+			SecretKey: os.Getenv("BINANCE_SECRET_KEY"),
+		}, nil
+	default:
+		return nil, fmt.Errorf("exchange %s not supported", exchangeName)
+	}
 }

@@ -2,8 +2,8 @@
 package services
 
 import (
-	"github.com/hakansahinxyz/crypto-tracker-backend/db"
-	"github.com/hakansahinxyz/crypto-tracker-backend/models"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/db"
+	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models"
 )
 
 func CreateCoin(coin *models.Coin) error {
