@@ -55,11 +55,10 @@ func (cs *CronService) StartCronJobs() {
 			if err != nil {
 				log.Printf("Failed to calculate total balances for %s: %v", exName, err)
 			}
-			result, err := cs.balanceHistoryService.CatchPumpDump()
+			_, err = cs.balanceHistoryService.CatchPumpDump()
 			if err != nil {
-				log.Printf("Failed to calculate total balances for %s: %v", exName, err)
+				log.Printf("Failed to catch PumpDump for %s: %v", exName, err)
 			}
-			log.Printf("%.2f  %.2f", result.ValueDifference, result.PercentageDifference)
 		})
 	}
 
