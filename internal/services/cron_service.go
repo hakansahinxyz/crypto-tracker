@@ -7,12 +7,14 @@ import (
 )
 
 type CronService struct {
-	walletBalanceService *WalletBalanceService
+	walletBalanceService  *WalletBalanceService
+	balanceHistoryService *BalanceService
 }
 
-func NewCronService(walletBalanceService *WalletBalanceService) *CronService {
+func NewCronService(walletBalanceService *WalletBalanceService, balanceHistoryService *BalanceService) *CronService {
 	return &CronService{
-		walletBalanceService: walletBalanceService,
+		walletBalanceService:  walletBalanceService,
+		balanceHistoryService: balanceHistoryService,
 	}
 }
 
@@ -53,6 +55,11 @@ func (cs *CronService) StartCronJobs() {
 			if err != nil {
 				log.Printf("Failed to calculate total balances for %s: %v", exName, err)
 			}
+			result, err := cs.balanceHistoryService.CatchPumpDump()
+			if err != nil {
+				log.Printf("Failed to calculate total balances for %s: %v", exName, err)
+			}
+			log.Printf("%.2f  %.2f", result.ValueDifference, result.PercentageDifference)
 		})
 	}
 

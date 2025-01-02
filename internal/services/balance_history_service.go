@@ -30,3 +30,7 @@ func (s *BalanceService) GetRecentHistory(ctx context.Context, limit int) ([]mod
 func (s *BalanceService) GetActualBalance(ctx context.Context) (*models.BalanceHistory, error) {
 	return s.balanceHistoryRepo.GetActualBalance(ctx)
 }
+
+func (s *BalanceService) CatchPumpDump() (models.Result, error) {
+	return s.balanceHistoryRepo.CatchPumpDump()
+}

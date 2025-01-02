@@ -30,9 +30,12 @@ func main() {
 	walletBalanceRepo := repository.NewWalletBalanceRepository(db.DB)
 	walletBalanceService := services.NewWalletBalanceService(walletBalanceRepo, exchanges)
 
+	balanceHistoryRepo := repository.NewBalanceHistoryRepository(db.DB)
+	balanceHistoryService := services.NewBalanceService(balanceHistoryRepo)
+
 	router := routes.SetupRouter(walletBalanceService)
 
-	cronService := services.NewCronService(walletBalanceService)
+	cronService := services.NewCronService(walletBalanceService, balanceHistoryService)
 	cronService.StartCronJobs()
 
 	port := "8080"

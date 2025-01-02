@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/repositories/interfaces"
@@ -47,4 +48,49 @@ func (r *balanceHistoryRepository) GetActualBalance(ctx context.Context) (*model
 		return nil, err
 	}
 	return balance, nil
+}
+
+func (r *balanceHistoryRepository) CatchPumpDump() (models.Result, error) {
+
+	query := `
+    WITH TimeDifferences AS (
+        SELECT 
+            curr.id AS curr_id,
+            curr.total_usd_value AS curr_value,
+            curr.created_at AS curr_created_at,
+            prev.id AS prev_id,
+            prev.total_usd_value AS prev_value,
+            prev.created_at AS prev_created_at,
+            ABS(curr.total_usd_value - prev.total_usd_value) AS value_difference,
+            (ABS(curr.total_usd_value - prev.total_usd_value) / prev.total_usd_value) * 100 AS percentage_difference,
+            TIMESTAMPDIFF(MINUTE, prev.created_at, curr.created_at) AS time_difference
+        FROM balance_histories curr
+        JOIN balance_histories prev
+          ON curr.created_at > prev.created_at
+        WHERE curr.created_at >= NOW() - INTERVAL 600 MINUTE
+					AND TIMESTAMPDIFF(MINUTE, prev.created_at, curr.created_at) <= 15
+          AND (ABS(curr.total_usd_value - prev.total_usd_value) / prev.total_usd_value) * 100 > 2
+    )
+    SELECT 
+        prev_id,
+        prev_value,
+        prev_created_at,
+        curr_id,
+        curr_value,
+        curr_created_at,
+        value_difference,
+        percentage_difference,
+        time_difference
+    FROM TimeDifferences
+    ORDER BY curr_created_at DESC
+    LIMIT 1;
+    `
+
+	var result models.Result
+	if err := r.db.Raw(query).Scan(&result).Error; err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Result: %+v\n", result)
+	return result, nil
 }

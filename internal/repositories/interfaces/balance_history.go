@@ -11,4 +11,5 @@ type BalanceHistoryRepository interface {
 	SaveBalanceHistory(ctx context.Context, history *models.BalanceHistory) error
 	DeleteOldHistory(ctx context.Context, threshold int) error
 	GetActualBalance(ctx context.Context) (*models.BalanceHistory, error)
+	CatchPumpDump() (models.Result, error)
 }
