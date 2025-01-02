@@ -17,6 +17,13 @@ func main() {
 
 	cfg := config.LoadConfig()
 
+	telegramConfig := cfg.GetTelegramConfig()
+
+	telegramService, err := services.NewTelegramService(telegramConfig.Token, telegramConfig.ChatID)
+	if err != nil {
+		log.Fatalf("Failed to initialize Telegram service: %v", err)
+	}
+
 	binanceConfig, err := cfg.GetExchangeConfig("binance")
 	if err != nil {
 		log.Fatalf("Failed to get Binance config: %v", err)
@@ -31,7 +38,7 @@ func main() {
 	walletBalanceService := services.NewWalletBalanceService(walletBalanceRepo, exchanges)
 
 	balanceHistoryRepo := repository.NewBalanceHistoryRepository(db.DB)
-	balanceHistoryService := services.NewBalanceService(balanceHistoryRepo)
+	balanceHistoryService := services.NewBalanceService(balanceHistoryRepo, telegramService)
 
 	router := routes.SetupRouter(walletBalanceService)
 

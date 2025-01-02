@@ -4,6 +4,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -19,6 +20,11 @@ type Config struct {
 type ExchangeConfig struct {
 	ApiKey    string
 	SecretKey string
+}
+
+type TelegramConfig struct {
+	Token  string
+	ChatID int64
 }
 
 func LoadConfig() *Config {
@@ -50,5 +56,18 @@ func (c *Config) GetExchangeConfig(exchangeName string) (*ExchangeConfig, error)
 		}, nil
 	default:
 		return nil, fmt.Errorf("exchange %s not supported", exchangeName)
+	}
+}
+
+func (c *Config) GetTelegramConfig() TelegramConfig {
+	chatID := os.Getenv("TELEGRAM_CHAT_ID")
+	id, err := strconv.ParseInt(chatID, 10, 64)
+	if err != nil {
+		panic("Invalid TELEGRAM_CHAT_ID")
+	}
+
+	return TelegramConfig{
+		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
+		ChatID: id,
 	}
 }
