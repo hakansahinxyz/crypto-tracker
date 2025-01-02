@@ -22,7 +22,8 @@ type Binance struct {
 }
 
 const (
-	baseURL = "https://api.binance.com"
+	recvWindow = 15000
+	baseURL    = "https://api.binance.com"
 
 	spotAccountInfoURL      = "%s/api/v3/account?%s"
 	marginAccountBalanceURL = "%s/sapi/v1/margin/account?%s"
@@ -37,7 +38,7 @@ func (b *Binance) signQuery(query string) string {
 func (b *Binance) FetchSpotWalletBalances() ([]models.WalletBalance, error) {
 
 	timestamp := time.Now().UnixMilli()
-	queryString := fmt.Sprintf("timestamp=%d&omitZeroBalances=true", timestamp)
+	queryString := fmt.Sprintf("timestamp=%d&omitZeroBalances=true&recvWindow=%d", timestamp, recvWindow)
 	signature := b.signQuery(queryString)
 	queryStringWithSignature := fmt.Sprintf("%s&signature=%s", queryString, signature)
 
@@ -45,7 +46,7 @@ func (b *Binance) FetchSpotWalletBalances() ([]models.WalletBalance, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatalf("Failed to create Request: %v", err)
+		log.Printf("Failed to create Request: %v", err)
 	}
 
 	req.Header.Set("X-MBX-APIKEY", b.Config.ApiKey)
@@ -60,12 +61,12 @@ func (b *Binance) FetchSpotWalletBalances() ([]models.WalletBalance, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Failed to read response: %v", err)
+		log.Printf("Failed to read response: %v", err)
 		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalf("API Error: %s", body)
+		log.Printf("%s: API Error: %s", models.AccountTypeSpot, body)
 		return nil, err
 	}
 
@@ -104,7 +105,7 @@ func (b *Binance) FetchSpotWalletBalances() ([]models.WalletBalance, error) {
 
 func (b *Binance) FetchMarginWalletBalances() ([]models.WalletBalance, error) {
 	timestamp := time.Now().UnixMilli()
-	queryString := fmt.Sprintf("timestamp=%d&omitZeroBalances=true", timestamp)
+	queryString := fmt.Sprintf("timestamp=%d&omitZeroBalances=true&recvWindow=%d", timestamp, recvWindow)
 	signature := b.signQuery(queryString)
 	queryStringWithSignature := fmt.Sprintf("%s&signature=%s", queryString, signature)
 
@@ -112,7 +113,7 @@ func (b *Binance) FetchMarginWalletBalances() ([]models.WalletBalance, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatalf("Failed to create Request: %v", err)
+		log.Printf("Failed to create Request: %v", err)
 	}
 
 	req.Header.Set("X-MBX-APIKEY", b.Config.ApiKey)
@@ -127,12 +128,12 @@ func (b *Binance) FetchMarginWalletBalances() ([]models.WalletBalance, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Failed to read response: %v", err)
+		log.Printf("Failed to read response: %v", err)
 		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalf("API Error: %s", body)
+		log.Printf("%s: API Error: %s", models.AccountTypeMargin, body)
 		return nil, err
 	}
 
@@ -165,13 +166,13 @@ func (b *Binance) FetchMarginWalletBalances() ([]models.WalletBalance, error) {
 
 func (b *Binance) FetchFutureAccountBalance() ([]models.WalletBalance, error) {
 	timestamp := time.Now().UnixMilli()
-	queryString := fmt.Sprintf("timestamp=%d&recvWindow=%d", timestamp, 7000)
+	queryString := fmt.Sprintf("timestamp=%d&recvWindow=%d", timestamp, recvWindow)
 	signature := b.signQuery(queryString)
 	url := fmt.Sprintf("https://fapi.binance.com/fapi/v3/balance?%s&signature=%s", queryString, signature)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatalf("Failed to create Request: %v", err)
+		log.Printf("Failed to create Request: %v", err)
 	}
 
 	req.Header.Set("X-MBX-APIKEY", b.Config.ApiKey)
@@ -186,12 +187,12 @@ func (b *Binance) FetchFutureAccountBalance() ([]models.WalletBalance, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Failed to read response: %v", err)
+		log.Printf("Failed to read response: %v", err)
 		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalf("API Error: %s", body)
+		log.Printf("%s: API Error: %s", models.AccountTypeFutures, body)
 		return nil, err
 	}
 

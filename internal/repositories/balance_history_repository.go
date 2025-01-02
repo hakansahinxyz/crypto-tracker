@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/repositories/interfaces"
@@ -67,9 +66,10 @@ func (r *balanceHistoryRepository) CatchPumpDump() (models.Result, error) {
         FROM balance_histories curr
         JOIN balance_histories prev
           ON curr.created_at > prev.created_at
-        WHERE curr.created_at >= NOW() - INTERVAL 600 MINUTE
-					AND TIMESTAMPDIFF(MINUTE, prev.created_at, curr.created_at) <= 15
-          AND (ABS(curr.total_usd_value - prev.total_usd_value) / prev.total_usd_value) * 100 > 2
+        WHERE curr.created_at >= NOW() - INTERVAL 15 MINUTE
+					AND prev.created_at >= NOW() - INTERVAL 15 MINUTE
+					-- AND TIMESTAMPDIFF(MINUTE, prev.created_at, curr.created_at) <= 15
+          AND (ABS(curr.total_usd_value - prev.total_usd_value) / prev.total_usd_value) * 100 > 0.6
     )
     SELECT 
         prev_id,
@@ -82,7 +82,7 @@ func (r *balanceHistoryRepository) CatchPumpDump() (models.Result, error) {
         percentage_difference,
         time_difference
     FROM TimeDifferences
-    ORDER BY curr_created_at DESC
+    ORDER BY value_difference DESC
     LIMIT 1;
     `
 
@@ -91,6 +91,5 @@ func (r *balanceHistoryRepository) CatchPumpDump() (models.Result, error) {
 		panic(err)
 	}
 
-	fmt.Printf("Result: %+v\n", result)
 	return result, nil
 }
