@@ -69,7 +69,7 @@ func (r *balanceHistoryRepository) CatchPumpDump() (models.Result, error) {
         WHERE curr.created_at >= NOW() - INTERVAL 15 MINUTE
 					AND prev.created_at >= NOW() - INTERVAL 15 MINUTE
 					-- AND TIMESTAMPDIFF(MINUTE, prev.created_at, curr.created_at) <= 15
-          AND (ABS(curr.total_usd_value - prev.total_usd_value) / prev.total_usd_value) * 100 > 0.6
+          AND (ABS(curr.total_usd_value - prev.total_usd_value) / prev.total_usd_value) * 100 > 1
     )
     SELECT 
         prev_id,

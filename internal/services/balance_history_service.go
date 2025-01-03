@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
+	"reflect"
 
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/models"
 	"github.com/hakansahinxyz/crypto-tracker-backend/internal/repositories/interfaces"
@@ -13,6 +13,7 @@ import (
 type BalanceService struct {
 	balanceHistoryRepo interfaces.BalanceHistoryRepository
 	tg                 *TelegramService
+	lastPumpDumb       models.Result
 }
 
 func NewBalanceService(
@@ -45,21 +46,26 @@ func (s *BalanceService) CatchPumpDump() (models.Result, error) {
 		return models.Result{}, err
 	}
 
-	if r.ValueDifference > 0 {
-		var sb strings.Builder
-		var isPump string
-		if r.CurrValue > r.PrevValue {
-			isPump = "+"
-		} else {
-			isPump = "-"
-		}
-		sb.WriteString(fmt.Sprintf("%.2f, %s%.2f, %s%.2f%%\n", r.CurrValue, isPump, r.ValueDifference, isPump, r.PercentageDifference))
-		sb.WriteString(r.CurrCreatedAt.String())
-		sb.WriteString("\n")
-		sb.WriteString(r.PrevCreatedAt.String())
-		s.tg.SendMessage(sb.String())
-		log.Printf("%.2f  %.2f", r.ValueDifference, r.PercentageDifference)
+	if reflect.DeepEqual(r, s.lastPumpDumb) {
+		return models.Result{}, nil
+	}
 
+	if r.ValueDifference > 0 {
+		direction := "-"
+		status := "Dump"
+		if r.CurrValue > r.PrevValue {
+			direction = "+"
+			status = "Pump"
+		}
+
+		message := fmt.Sprintf("🔥 Portfolio %s 🔥", status) +
+			"\n" + fmt.Sprintf("Balance Change: %s$%.2f, %%%.2f", direction, r.ValueDifference, r.PercentageDifference) +
+			"\n" + fmt.Sprintf("$%.2f -> $%.2f", r.PrevValue, r.CurrValue) +
+			"\n" + fmt.Sprintf("%s -> %s", r.PrevCreatedAt.Format("15:04"), r.CurrCreatedAt.Format("15:04"))
+
+		s.tg.SendMessage(message)
+		log.Printf("%.2f  %.2f", r.ValueDifference, r.PercentageDifference)
+		s.lastPumpDumb = r
 		return r, nil
 	}
 
